@@ -1,12 +1,13 @@
 {
-  "version": 3,
+  "version": 2,
   "installCommand": "npm install",
   "buildCommand": "npm run build",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "vercel-nodejs@4.0.0"
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
