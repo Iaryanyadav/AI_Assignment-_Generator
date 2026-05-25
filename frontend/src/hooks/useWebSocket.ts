@@ -2,8 +2,9 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAssignmentStore, GeneratedPaper } from '@/store/assignmentStore';
+import { getWebSocketUrl } from '@/lib/wsUrl';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:4000';
+const WS_URL = getWebSocketUrl();
 
 let socket: Socket | null = null;
 

@@ -6,6 +6,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import assignmentRoutes from './routes/assignments';
 import { createAssessmentWorker } from './workers/assessmentWorker';
+import { corsOriginCallback } from './lib/corsOrigins';
 
 dotenv.config();
 
@@ -14,15 +15,16 @@ const server = http.createServer(app);
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: corsOriginCallback,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: corsOriginCallback,
     credentials: true,
   })
 );
