@@ -25,7 +25,11 @@ export function createApp(): Express {
       next();
     } catch (err) {
       console.error('[DB] Connection error:', err);
-      res.status(503).json({ success: false, error: 'Database connection failed' });
+      const message =
+        err instanceof Error && /whitelist|ServerSelection/i.test(err.message)
+          ? 'MongoDB Atlas blocked this server. In Atlas → Network Access, allow 0.0.0.0/0 (required for Vercel).'
+          : 'Database connection failed. Check MONGODB_URI on the backend project.';
+      res.status(503).json({ success: false, error: message });
     }
   });
 

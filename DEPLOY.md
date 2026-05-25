@@ -39,8 +39,26 @@ Do **not** leave Install/Build as `None` — nothing will compile and the API wi
 
 | Variable | Example |
 |----------|---------|
-| `MONGODB_URI` | `mongodb+srv://...` |
+| `MONGODB_URI` | `mongodb+srv://...` (from Atlas → Connect → Drivers) |
 | `REDIS_URL` | `rediss://...` (Upstash / Railway Redis) |
+
+### MongoDB Atlas + Vercel (fix “IP isn’t whitelisted”)
+
+Vercel uses **changing IPs**, so your laptop’s whitelist is not enough.
+
+1. Open [MongoDB Atlas](https://cloud.mongodb.com) → your project → **Network Access**.
+2. Click **Add IP Address**.
+3. Choose **Allow Access from Anywhere** (`0.0.0.0/0`).
+4. Confirm (Atlas will warn you — this is normal for serverless/Vercel).
+5. Wait 1–2 minutes, then redeploy or hit `https://vedabackend.vercel.app/health` again.
+
+Also check **Database Access**: a user exists with read/write on your database, and `MONGODB_URI` uses that username/password (URL-encoded if the password has special characters).
+
+Example URI shape:
+
+```text
+mongodb+srv://USERNAME:PASSWORD@cluster.vrgmnpo.mongodb.net/vedaai?retryWrites=true&w=majority
+```
 | `GROQ_API_KEY` | your Groq key |
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` |
 | `FRONTEND_URL` | `https://vedaai-assignmentgenerator.vercel.app` |
