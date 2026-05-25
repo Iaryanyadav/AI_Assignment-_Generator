@@ -114,74 +114,77 @@ const defaultForm: AssignmentFormState = {
 };
 
 export const useAssignmentStore = create<AssignmentStore>()(
-  devtools((set) => ({
-    assignments: [],
-    isLoadingList: false,
-    listError: null,
-    form: defaultForm,
-    isSubmitting: false,
-    submitError: null,
-    currentAssignmentId: null,
-    generationStatus: { status: 'idle', message: '', progress: 0 },
-    generatedPaper: null,
+  devtools(
+    (set) => ({
+      assignments: [],
+      isLoadingList: false,
+      listError: null,
+      form: defaultForm,
+      isSubmitting: false,
+      submitError: null,
+      currentAssignmentId: null,
+      generationStatus: { status: 'idle', message: '', progress: 0 },
+      generatedPaper: null,
 
-    setAssignments: (assignments) => set({ assignments }),
-    setIsLoadingList: (isLoadingList) => set({ isLoadingList }),
-    setListError: (listError) => set({ listError }),
+      setAssignments: (assignments) => set({ assignments }),
+      setIsLoadingList: (isLoadingList) => set({ isLoadingList }),
+      setListError: (listError) => set({ listError }),
 
-    updateForm: (partial) =>
-      set((state) => ({ form: { ...state.form, ...partial } })),
+      updateForm: (partial) =>
+        set((state) => ({ form: { ...state.form, ...partial } })),
 
-    addQuestionType: () =>
-      set((state) => ({
-        form: {
-          ...state.form,
-          questionTypes: [
-            ...state.form.questionTypes,
-            {
-              id: Date.now().toString(),
-              type: 'Numerical Problems',
-              count: 3,
-              marks: 5,
-            },
-          ],
-        },
-      })),
+      addQuestionType: () =>
+        set((state) => ({
+          form: {
+            ...state.form,
+            questionTypes: [
+              ...state.form.questionTypes,
+              {
+                id: Date.now().toString(),
+                type: 'Numerical Problems',
+                count: 3,
+                marks: 5,
+              },
+            ],
+          },
+        })),
 
-    removeQuestionType: (id) =>
-      set((state) => ({
-        form: {
-          ...state.form,
-          questionTypes: state.form.questionTypes.filter((qt) => qt.id !== id),
-        },
-      })),
+      removeQuestionType: (id) =>
+        set((state) => ({
+          form: {
+            ...state.form,
+            questionTypes: state.form.questionTypes.filter((qt) => qt.id !== id),
+          },
+        })),
 
-    updateQuestionType: (id, partial) =>
-      set((state) => ({
-        form: {
-          ...state.form,
-          questionTypes: state.form.questionTypes.map((qt) =>
-            qt.id === id ? { ...qt, ...partial } : qt
-          ),
-        },
-      })),
+      updateQuestionType: (id, partial) =>
+        set((state) => ({
+          form: {
+            ...state.form,
+            questionTypes: state.form.questionTypes.map((qt) =>
+              qt.id === id ? { ...qt, ...partial } : qt
+            ),
+          },
+        })),
 
-    resetForm: () => set({ form: defaultForm }),
+      resetForm: () => set({ form: defaultForm }),
 
-    setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
-    setSubmitError: (submitError) => set({ submitError }),
-    setCurrentAssignmentId: (currentAssignmentId) => set({ currentAssignmentId }),
+      setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
+      setSubmitError: (submitError) => set({ submitError }),
+      setCurrentAssignmentId: (currentAssignmentId) => set({ currentAssignmentId }),
 
-    updateGenerationStatus: (status) =>
-      set((state) => ({
-        generationStatus: { ...state.generationStatus, ...status },
-      })),
+      updateGenerationStatus: (status) =>
+        set((state) => ({
+          generationStatus: { ...state.generationStatus, ...status },
+        })),
 
-    setGeneratedPaper: (generatedPaper) => set({ generatedPaper }),
+      setGeneratedPaper: (generatedPaper) => set({ generatedPaper }),
 
-    removeAssignment: (id) =>
-      set((state) => ({
-        assignments: state.assignments.filter((a) => a._id !== id),
-      })),
-  }))
+      removeAssignment: (id) =>
+        set((state) => ({
+          assignments: state.assignments.filter((a) => a._id !== id),
+        })),
+    }),
+    { enabled: process.env.NODE_ENV === 'development' }
+  )
 );
