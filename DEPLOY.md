@@ -2,15 +2,47 @@
 
 The **frontend on Vercel cannot work alone**. Assignment creation calls the **Express API** (MongoDB, Redis, Groq). You must deploy the `backend` folder too (Railway, Render, Fly.io, etc.).
 
-## 1. Deploy the backend
+## 1. Deploy the backend (separate project from frontend)
 
-1. Create a project from the `backend` directory.
-2. Set environment variables (see `backend/.env.example`):
-   - `MONGODB_URI`
-   - `REDIS_URL`
-   - `GROQ_API_KEY`
-   - `FRONTEND_URL` = your Vercel URL, e.g. `https://your-app.vercel.app`
-3. Note the public URL, e.g. `https://vedaai-api.railway.app`.
+**Recommended:** [Railway](https://railway.app) or [Render](https://render.com) — this app needs a long-running Node process (Express + BullMQ worker + Socket.IO). Vercel serverless is a poor fit for the backend.
+
+**Your frontend URL (for CORS):** `https://vedaai-assignmentgenerator.vercel.app`
+
+### Railway / Render — Build & run
+
+| Setting | Value |
+|---------|--------|
+| **Root directory** | `backend` |
+| **Install command** | `npm install` |
+| **Build command** | `npm run build` |
+| **Start command** | `npm start` |
+| **Port** | `4000` (or set `PORT` env — hosts usually inject this automatically) |
+
+### Vercel — Build & Output (second project, if you still use Vercel)
+
+| Setting | Value | Override? |
+|---------|--------|-----------|
+| **Root Directory** | `backend` | — |
+| **Framework Preset** | Other | — |
+| **Install Command** | `npm install` | **On** |
+| **Build Command** | `npm run build` | **On** |
+| **Output Directory** | *(leave empty / N/A)* | **Off** |
+| **Development Command** | `npm run dev` | optional |
+
+Do **not** leave Install/Build as `None` — nothing will compile and the API will not run.
+
+### Backend environment variables
+
+| Variable | Example |
+|----------|---------|
+| `MONGODB_URI` | `mongodb+srv://...` |
+| `REDIS_URL` | `rediss://...` (Upstash / Railway Redis) |
+| `GROQ_API_KEY` | your Groq key |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` |
+| `FRONTEND_URL` | `https://vedaai-assignmentgenerator.vercel.app` |
+| `NODE_ENV` | `production` |
+
+After deploy, copy the public backend URL (e.g. `https://vedaai-api.up.railway.app`) — you will use it as `API_URL` on the **frontend** Vercel project.
 
 ## 2. Deploy the frontend on Vercel
 
@@ -20,10 +52,11 @@ The **frontend on Vercel cannot work alone**. Assignment creation calls the **Ex
 
 | Variable | Example | Required |
 |----------|---------|----------|
-| `API_URL` | `https://vedaai-api.railway.app` | Yes — proxies `/api/*` to your backend (no CORS issues) |
-| `NEXT_PUBLIC_WS_URL` | `https://vedaai-api.railway.app` | Yes — WebSocket / real-time progress |
+| `API_URL` | `https://vedaai-api.railway.app` | **Yes** — backend root URL only (no `/api` suffix). Proxies `/api/*` via Next.js. |
+| `NEXT_PUBLIC_WS_URL` | `https://vedaai-api.railway.app` | **Yes** — WebSocket / real-time progress |
 
-Do **not** leave `NEXT_PUBLIC_API_URL` pointing at `http://localhost:4000` on Vercel.
+**Common 404 fix:** `API_URL` must be your **backend** host (Railway/Render), **not** your Vercel app URL.  
+Remove `NEXT_PUBLIC_API_URL` if it points at Vercel or `localhost` — the browser should call `/api/...` on your own domain.
 
 Redeploy after saving env vars.
 
