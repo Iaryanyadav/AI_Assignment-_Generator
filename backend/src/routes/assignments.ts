@@ -2,8 +2,8 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import { Assignment } from '../models/Assignment';
-import { assessmentQueue, cacheGet, cacheDel } from '../lib/queue';
-import { v4 as uuidv4 } from 'uuid';
+import { cacheGet, cacheDel } from '../lib/queue';
+import { scheduleAssignmentGeneration } from '../lib/scheduleGeneration';
 
 const router = Router();
 
@@ -126,20 +126,13 @@ router.post('/', upload.single('file'), async (req: Request, res: Response) => {
     // Invalidate list cache
     await cacheDel('all-assignments');
 
-    // Add to BullMQ queue
-    const job = await assessmentQueue.add(
-      'generate',
-      { assignmentId: assignment._id.toString() },
-      { jobId: uuidv4() }
-    );
-
-    await Assignment.findByIdAndUpdate(assignment._id, { jobId: job.id });
+    const jobId = await scheduleAssignmentGeneration(assignment._id.toString());
 
     return res.status(201).json({
       success: true,
       data: {
         assignmentId: assignment._id,
-        jobId: job.id,
+        jobId,
         status: 'pending',
         message: 'Assignment created. AI generation started.',
       },
@@ -183,17 +176,11 @@ router.post('/:id/regenerate', async (req: Request, res: Response) => {
 
     await cacheDel(`assignment:${id}`);
 
-    const job = await assessmentQueue.add(
-      'generate',
-      { assignmentId: id },
-      { jobId: uuidv4() }
-    );
-
-    await Assignment.findByIdAndUpdate(id, { jobId: job.id });
+    const jobId = await scheduleAssignmentGeneration(id);
 
     return res.json({
       success: true,
-      data: { assignmentId: id, jobId: job.id, status: 'pending' },
+      data: { assignmentId: id, jobId, status: 'pending' },
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: 'Failed to regenerate' });

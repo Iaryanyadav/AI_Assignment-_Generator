@@ -1,16 +1,12 @@
-import express from 'express';
 import http from 'http';
-import { Server as SocketIOServer } from 'socket.io';
 import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import assignmentRoutes from './routes/assignments';
+import { Server as SocketIOServer } from 'socket.io';
+import { createApp } from './app';
 import { createAssessmentWorker } from './workers/assessmentWorker';
 import { corsOriginCallback } from './lib/corsOrigins';
+import { connectMongo } from './lib/db';
 
-dotenv.config();
-
-const app = express();
+const app = createApp();
 const server = http.createServer(app);
 
 const io = new SocketIOServer(server, {
@@ -21,25 +17,6 @@ const io = new SocketIOServer(server, {
   },
 });
 
-// Middleware
-app.use(
-  cors({
-    origin: corsOriginCallback,
-    credentials: true,
-  })
-);
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Routes
-app.use('/api/assignments', assignmentRoutes);
-
-// WebSocket
 io.on('connection', (socket) => {
   console.log(`[WS] Client connected: ${socket.id}`);
 
@@ -57,15 +34,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start worker
 const worker = createAssessmentWorker(io);
 
-// Connect to MongoDB
 async function startServer() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/vedaai';
-    await mongoose.connect(mongoUri);
-    console.log('[DB] MongoDB connected');
+    await connectMongo();
 
     const port = Number(process.env.PORT) || 4000;
     server.listen(port, () => {

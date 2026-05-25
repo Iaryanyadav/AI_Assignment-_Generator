@@ -304,6 +304,52 @@ export default function AssignmentDetailClient() {
     };
   }, [id, subscribe, unsubscribe, setGeneratedPaper, updateGenerationStatus]);
 
+  // Poll while generating (WebSockets do not work on Vercel serverless backend)
+  useEffect(() => {
+    if (!id) return;
+    const active =
+      generationStatus.status === 'pending' ||
+      generationStatus.status === 'processing' ||
+      assignment?.status === 'pending' ||
+      assignment?.status === 'processing';
+    if (!active) return;
+
+    const poll = async () => {
+      try {
+        const res = await api.assignments.get(id as string);
+        const data = res.data as Assignment;
+        setAssignment(data);
+        if (data.status === 'completed' && data.generatedPaper) {
+          setGeneratedPaper(data.generatedPaper);
+          updateGenerationStatus({ status: 'completed', message: 'Paper generated!', progress: 100 });
+        } else if (data.status === 'failed') {
+          updateGenerationStatus({
+            status: 'failed',
+            message: data.errorMessage || 'Generation failed',
+            progress: 0,
+          });
+        } else if (data.status === 'processing') {
+          updateGenerationStatus({
+            status: 'processing',
+            message: 'AI is generating your question paper...',
+            progress: 50,
+          });
+        }
+      } catch {
+        /* ignore poll errors */
+      }
+    };
+
+    const interval = setInterval(poll, 4000);
+    return () => clearInterval(interval);
+  }, [
+    id,
+    assignment?.status,
+    generationStatus.status,
+    setGeneratedPaper,
+    updateGenerationStatus,
+  ]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center py-24">

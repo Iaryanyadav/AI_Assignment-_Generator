@@ -4,7 +4,9 @@ The **frontend on Vercel cannot work alone**. Assignment creation calls the **Ex
 
 ## 1. Deploy the backend (separate project from frontend)
 
-**Recommended:** [Railway](https://railway.app) or [Render](https://render.com) — this app needs a long-running Node process (Express + BullMQ worker + Socket.IO). Vercel serverless is a poor fit for the backend.
+**Recommended:** [Railway](https://railway.app) or [Render](https://render.com) for the backend (WebSockets + BullMQ worker).
+
+**Vercel backend:** Supported via `backend/api/index.ts` (serverless). After deploy, `/health` must return JSON. WebSockets do **not** work on Vercel — the frontend polls for status. AI generation runs inline with `waitUntil` (max ~60s on Pro, shorter on Hobby).
 
 **Your frontend URL (for CORS):** `https://vedaai-assignmentgenerator.vercel.app`
 
@@ -30,6 +32,8 @@ The **frontend on Vercel cannot work alone**. Assignment creation calls the **Ex
 | **Development Command** | `npm run dev` | optional |
 
 Do **not** leave Install/Build as `None` — nothing will compile and the API will not run.
+
+**If you see:** `Invalid export found in module backend/src/index.js` — redeploy with the latest repo code. The backend entry is `api/index.ts`, not `src/index.ts`.
 
 ### Backend environment variables
 
