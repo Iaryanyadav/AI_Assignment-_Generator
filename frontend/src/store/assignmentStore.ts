@@ -44,6 +44,7 @@ export interface Assignment {
   generatedPaper?: GeneratedPaper;
   errorMessage?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface AssignmentFormState {
